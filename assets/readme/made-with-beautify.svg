@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="420" height="64" viewBox="0 0 420 64" role="img" aria-labelledby="title desc">
   <title id="title">README made with beautify-github-readme</title>
-  <desc id="desc">A compact warm-white signature with four colored Dev Team role tiles and an outbound-link arrow.</desc>
+  <desc id="desc">A compact warm-white signature with four colored Team Mode role tiles and an outbound-link arrow.</desc>
 
   <rect x="0.75" y="0.75" width="418.5" height="62.5" rx="17.25" fill="#f7f4ec" stroke="#ded8ca" stroke-width="1.5"/>
 
-  <g id="dev-team-mark" transform="translate(14 11)">
+  <g id="team-mode-mark" transform="translate(14 11)">
     <rect width="42" height="42" rx="13" fill="#0b0d12"/>
     <rect x="9" y="9" width="10" height="10" rx="3" fill="#7aa2ff"/>
     <rect x="23" y="9" width="10" height="10" rx="3" fill="#9fe870"/>

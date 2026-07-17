@@ -1,0 +1,7 @@
+interface:
+  display_name: "小队模式"
+  short_description: "按任务调度探索、执行与独立复审子 Agent"
+  default_prompt: "使用 $team-mode 完成这个复杂任务，只在委派、并行、上下文隔离或独立复审有明确价值时启动子 Agent。"
+
+policy:
+  allow_implicit_invocation: true

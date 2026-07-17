@@ -1,8 +1,0 @@
-interface:
-  display_name: "Dev Team"
-  short_description: "Route development work across focused code subagents"
-  default_prompt: "Use $dev-team for this development task and delegate only when exploration, implementation, or independent review benefits from a focused subagent."
-
-policy:
-  allow_implicit_invocation: true
-

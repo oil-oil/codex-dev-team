@@ -17,16 +17,16 @@ When spawning, pass the exact profile name through `agent_type`. `task_name` onl
 
 ## What Must Be Installed
 
-The Skill and custom Agent profiles are separate Codex configuration surfaces. Installing `dev-team` does not create the four profiles.
+The Skill and custom Agent profiles are separate Codex configuration surfaces. Installing `team-mode` does not create the four profiles.
 
 Use these exact profile names and recommended defaults:
 
-- `Explorer`（看代码小子）: `gpt-5.6-luna`, `medium`, `read-only`.
-- `Executor`（写代码小子）: `gpt-5.6-luna`, `medium`, `workspace-write`.
-- `Complex Executor`（写难代码小子）: `gpt-5.6-sol`, `high`, `workspace-write`.
-- `Reviewer`（Review 小子）: `gpt-5.6-sol`, `high`, `read-only`.
+- `Explorer`（探索者）: `gpt-5.6-luna`, `medium`, `read-only`.
+- `Executor`（执行者）: `gpt-5.6-luna`, `medium`, `workspace-write`.
+- `Complex Executor`（复杂执行者）: `gpt-5.6-sol`, `high`, `workspace-write`.
+- `Reviewer`（复审者）: `gpt-5.6-sol`, `high`, `read-only`.
 
-Use the canonical templates in the repository's [`agents`](https://github.com/oil-oil/codex-dev-team/tree/main/agents) directory. Do not duplicate or rewrite their developer instructions from memory.
+Use the canonical templates in the repository's [`agents`](https://github.com/oil-oil/codex-team-mode/tree/main/agents) directory. Do not duplicate or rewrite their developer instructions from memory.
 
 ## Choose The Scope
 
@@ -44,7 +44,7 @@ Codex identifies a custom Agent by its `name` field. Keep the names unchanged un
 
 ## Install Or Repair
 
-1. Confirm that the user has authorized writing personal or project Codex configuration. Do not silently create global profiles just because a development task triggered the Skill.
+1. Confirm that the user has authorized writing personal or project Codex configuration. Do not silently create global profiles just because a substantial task triggered the Skill.
 2. Inspect the destination directory first. Preserve unrelated profiles. If a same-named file already exists, compare it with the template and ask before replacing user changes.
 3. Copy the four canonical TOML templates to the selected Agent directory with the exact filenames above.
 4. Parse every file with Python `tomllib` or an equivalent TOML parser. Confirm that each contains `name`, `description`, and `developer_instructions`, plus the intended model, reasoning effort, and sandbox mode.
@@ -76,7 +76,7 @@ Model availability and cost preferences may differ between Codex environments. T
 Preserve these boundaries when customizing:
 
 - Keep `Explorer` and `Reviewer` read-only.
-- Keep implementation permissions limited to the two executors.
+- Keep mutation permissions limited to the two executors.
 - Keep `Reviewer` independent through the Skill's fresh-context rule.
-- Keep unresolved product, architecture, and safety decisions in the main thread.
+- Keep unresolved user intent, product, editorial, architecture, and safety decisions in the main thread.
 - Ask before replacing an unavailable configured model with another model.

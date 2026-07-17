@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
-  <title id="title">Meet the Dev Team</title>
-  <desc id="desc">Four character cards show the division of work: Explorer maps the codebase, Executor ships a clear local fix, Complex Executor builds substantial bounded changes, and Reviewer independently challenges the result without inherited history. Moon, Earth, and Sun symbols identify the Luna, Terra, and Sol model family.</desc>
+  <title id="title">Meet the team</title>
+  <desc id="desc">Four character cards show the division of work: Explorer maps evidence, Executor completes a clear bounded task, Complex Executor handles substantial bounded work, and Reviewer independently challenges the result without inherited history. Moon, Earth, and Sun symbols identify the Luna, Terra, and Sol model family.</desc>
 
   <defs>
     <g id="model-luna">
@@ -21,7 +21,7 @@
   <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif">
     <!-- Title and the main-thread lead -->
     <g id="title-block">
-      <text x="58" y="66" fill="#0b0d12" font-size="42" font-weight="820" letter-spacing="-1.4">Meet the dev team.</text>
+      <text x="58" y="66" fill="#0b0d12" font-size="42" font-weight="820" letter-spacing="-1.4">Meet the team.</text>
       <text x="58" y="101" fill="#626978" font-size="18">Four specialists. One main thread keeps the decisions and checks the result.</text>
 
       <g id="main-thread" transform="translate(815 34)">
@@ -58,9 +58,9 @@
       <g transform="translate(194 32)">
         <text x="0" y="0" fill="#4d6fc4" font-size="12" font-weight="820" letter-spacing="1.6">01 · SEARCH &amp; TRACE</text>
         <text x="0" y="42" fill="#0b0d12" font-size="30" font-weight="820">Explorer</text>
-        <text x="0" y="76" fill="#18202d" font-size="19" font-weight="740">Maps the codebase</text>
-        <text x="0" y="106" fill="#586171" font-size="15">Finds call paths, root causes,</text>
-        <text x="0" y="128" fill="#586171" font-size="15">and affected files. Never edits.</text>
+        <text x="0" y="76" fill="#18202d" font-size="19" font-weight="740">Maps the evidence</text>
+        <text x="0" y="106" fill="#586171" font-size="15">Finds sources, systems, relationships,</text>
+        <text x="0" y="128" fill="#586171" font-size="15">and open questions. Never edits.</text>
         <g transform="translate(0 155)">
           <rect width="118" height="27" rx="13.5" fill="#d7e2ff"/>
           <use href="#model-luna" transform="translate(8 6)"/>
@@ -93,11 +93,11 @@
       </g>
 
       <g transform="translate(194 32)">
-        <text x="0" y="0" fill="#4f7f32" font-size="12" font-weight="820" letter-spacing="1.6">02 · LOCAL IMPLEMENTATION</text>
+        <text x="0" y="0" fill="#4f7f32" font-size="12" font-weight="820" letter-spacing="1.6">02 · BOUNDED EXECUTION</text>
         <text x="0" y="42" fill="#0b0d12" font-size="30" font-weight="820">Executor</text>
-        <text x="0" y="76" fill="#18202d" font-size="19" font-weight="740">Ships the clear fix</text>
-        <text x="0" y="106" fill="#586171" font-size="15">Changes a small, frozen scope</text>
-        <text x="0" y="128" fill="#586171" font-size="15">and proves it with checks.</text>
+        <text x="0" y="76" fill="#18202d" font-size="19" font-weight="740">Completes the clear task</text>
+        <text x="0" y="106" fill="#586171" font-size="15">Works inside a defined scope</text>
+        <text x="0" y="128" fill="#586171" font-size="15">and proves the result with checks.</text>
         <g transform="translate(0 155)">
           <rect width="118" height="27" rx="13.5" fill="#d9efcb"/>
           <use href="#model-luna" transform="translate(8 6)"/>
@@ -133,11 +133,11 @@
       </g>
 
       <g transform="translate(194 32)">
-        <text x="0" y="0" fill="#986b14" font-size="12" font-weight="820" letter-spacing="1.6">03 · BOUNDED BUILD</text>
+        <text x="0" y="0" fill="#986b14" font-size="12" font-weight="820" letter-spacing="1.6">03 · COMPLEX EXECUTION</text>
         <text x="0" y="42" fill="#0b0d12" font-size="28" font-weight="820">Complex Executor</text>
         <text x="0" y="76" fill="#18202d" font-size="19" font-weight="740">Builds the hard part</text>
-        <text x="0" y="106" fill="#586171" font-size="15">Handles substantial multi-file work</text>
-        <text x="0" y="128" fill="#586171" font-size="15">after the contract is frozen.</text>
+        <text x="0" y="106" fill="#586171" font-size="15">Handles substantial multi-step work</text>
+        <text x="0" y="128" fill="#586171" font-size="15">after the requirements are clear.</text>
         <g transform="translate(0 155)">
           <rect width="96" height="27" rx="13.5" fill="#f7dfaa"/>
           <use href="#model-sol" transform="translate(8 6)"/>
@@ -171,8 +171,8 @@
         <text x="0" y="0" fill="#7d558f" font-size="12" font-weight="820" letter-spacing="1.6">04 · INDEPENDENT CHECK</text>
         <text x="0" y="42" fill="#0b0d12" font-size="30" font-weight="820">Reviewer</text>
         <text x="0" y="76" fill="#18202d" font-size="19" font-weight="740">Challenges the result</text>
-        <text x="0" y="106" fill="#586171" font-size="15">Reads the current diff from scratch</text>
-        <text x="0" y="128" fill="#586171" font-size="15">and looks for real regressions.</text>
+        <text x="0" y="106" fill="#586171" font-size="15">Reads the current artifact from scratch</text>
+        <text x="0" y="128" fill="#586171" font-size="15">and looks for real problems.</text>
         <g transform="translate(0 155)">
           <rect width="96" height="27" rx="13.5" fill="#ead8f7"/>
           <use href="#model-sol" transform="translate(8 6)"/>
@@ -188,7 +188,7 @@
     <!-- A small routing cue: the cards are specialists, not a mandatory pipeline. -->
     <g id="routing-note" transform="translate(58 674)">
       <circle cx="6" cy="6" r="6" fill="#ff7458"/>
-      <text x="24" y="12" fill="#626978" font-size="14">The lead calls only the specialist the task actually needs — tiny fixes stay in the main thread.</text>
+      <text x="24" y="12" fill="#626978" font-size="14">The lead calls only the specialist the task actually needs — simple work stays in the main thread.</text>
       <g id="model-symbols" transform="translate(820 -2)">
         <g>
           <use href="#model-luna"/>
