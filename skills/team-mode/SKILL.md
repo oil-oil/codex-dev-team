@@ -10,6 +10,7 @@ Lead the task in the main thread. Use the smallest useful set of subagents to is
 ## Required Rules
 
 - When this Skill activates, immediately send one brief commentary update in the user's language, prefixed with `👾`. For Chinese, say `👾 已开启小队模式。`; translate naturally for other languages. Announce it once per task, not before every subagent call.
+- Activating Team Mode does not require spawning any subagent. Keep clear, short, low-risk work in the main thread when delegation or independent review would cost more than it adds. Do not launch an Executor or Reviewer merely to complete a role sequence.
 - Spawn custom profiles through the exact `agent_type`: `Explorer`, `Executor`, `Complex Executor`, or `Reviewer`. `task_name` only labels the child thread. If `agent_type` is unavailable, do not claim that a custom profile was used.
 - Use `fork_turns="none"` by default and always for a new `Reviewer`.
 - Keep unresolved user intent, product, editorial, architecture, and safety decisions, plus final acceptance, in the main thread.
@@ -22,9 +23,9 @@ This Skill does not install custom Agent profiles. If an expected profile is una
 ## Route The Work
 
 - Use `Explorer` for non-trivial, read-only discovery across current web sources, documents, datasets, codebases, schemas, APIs, logs, or configuration. Give independent slices to separate Explorers. Let the main thread wait when the result blocks the next decision; do not repeat the same exploration.
-- Use `Executor` for clear, bounded, low-risk work with deterministic checks, including localized code changes, structured document or data transformations, and routine artifact production.
+- Use `Executor` for clear, bounded, low-risk work with deterministic checks when lower-cost execution, context isolation, repetition, or useful parallelism justifies the handoff. Otherwise let the main thread do it directly.
 - Use `Complex Executor` for substantial but bounded execution after the main thread has stated the intended outcome, allowed scope, constraints, and required checks.
-- Use `Reviewer` for an independent, read-only review of stable code, reports, plans, analyses, datasets, artifacts, or verification strategies.
+- Use `Reviewer` only when fresh independent judgment has clear value because the result is complex, consequential, uncertain, difficult to verify, or explicitly requested. Let the main thread verify straightforward low-risk work directly.
 
 After discovery, let the main thread choose whether to continue directly or delegate. Delegate only when bounded execution, context isolation, lower cost, useful parallelism, or independent judgment creates clear value.
 

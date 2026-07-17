@@ -22,10 +22,11 @@ Luna keeps routine exploration and execution economical. Sol is reserved for con
 ## How routing works
 
 - Use Team Mode when delegation, parallel work, context isolation, lower-cost execution, or independent review has clear value.
+- Team Mode may use no subagents at all. The main thread handles straightforward work when an Executor or Reviewer would add more coordination than value.
 - Give non-trivial read-only discovery to `Explorer`; the main thread can wait instead of repeating the same work.
 - After discovery, the main thread chooses whether to continue directly or delegate.
 - Reuse an Explorer or executor while its knowledge of the same topic, system, artifact, or workstream remains useful.
-- Start every new `Reviewer` with no inherited conversation.
+- Use `Reviewer` only when fresh independent judgment has clear value, and start every new Reviewer with no inherited conversation.
 - Parallelize only genuinely independent work and keep one writer per shared target.
 - The main thread inspects the actual sources, artifacts, changes, and verification before accepting delegated work.
 
