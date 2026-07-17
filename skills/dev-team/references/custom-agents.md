@@ -1,0 +1,58 @@
+# Custom Agent Profiles
+
+Read this reference only when the expected custom Agent profiles are missing, the user asks to install or change them, or their names, models, reasoning effort, or permissions need verification. Normal task routing does not require this file.
+
+## What Must Be Installed
+
+The Skill and custom Agent profiles are separate Codex configuration surfaces. Installing `dev-team` does not create the four profiles.
+
+Use these exact profile names and recommended defaults:
+
+- `Explorer`（看代码小子）: `gpt-5.6-luna`, `medium`, `read-only`.
+- `Executor`（写代码小子）: `gpt-5.6-luna`, `medium`, `workspace-write`.
+- `Complex Executor`（写难代码小子）: `gpt-5.6-sol`, `high`, `workspace-write`.
+- `Reviewer`（Review 小子）: `gpt-5.6-sol`, `high`, `read-only`.
+
+Use the canonical templates in the repository's [`agents`](https://github.com/oil-oil/codex-dev-team/tree/main/agents) directory. Do not duplicate or rewrite their developer instructions from memory.
+
+## Choose The Scope
+
+- Personal profiles: place the TOML files under `~/.codex/agents/`.
+- Project-only profiles: place them under `<repository>/.codex/agents/`.
+
+Keep these filenames:
+
+- `Explorer.toml`
+- `Executor.toml`
+- `Complex Executor.toml`
+- `Reviewer.toml`
+
+Codex identifies a custom Agent by its `name` field. Keep the names unchanged unless the Skill routing names are updated at the same time.
+
+## Install Or Repair
+
+1. Confirm that the user has authorized writing personal or project Codex configuration. Do not silently create global profiles just because a development task triggered the Skill.
+2. Inspect the destination directory first. Preserve unrelated profiles. If a same-named file already exists, compare it with the template and ask before replacing user changes.
+3. Copy the four canonical TOML templates to the selected Agent directory with the exact filenames above.
+4. Parse every file with Python `tomllib` or an equivalent TOML parser. Confirm that each contains `name`, `description`, and `developer_instructions`, plus the intended model, reasoning effort, and sandbox mode.
+5. Report the final path and role-to-model mapping. If the new profiles do not appear immediately, open a new Codex task or restart Codex.
+
+## Verify Availability
+
+Installed profiles and running subagents are different things. An activity or agent-thread list normally shows only instances that have already been spawned; it does not need to show all installed profiles while they are idle.
+
+Verify installation by checking the TOML files and their exact `name` fields. After opening a new task, use a small bounded request to confirm that Codex can spawn the intended profile. Keep the first `Explorer` check read-only.
+
+If a required profile remains unavailable, tell the user which file or setting is missing. Continue in the main thread only when that still satisfies the user's request; do not silently substitute a differently configured Agent for security-sensitive or independent-review work.
+
+## Customize Models Safely
+
+Model availability and cost preferences may differ between Codex environments. The user may change `model` and `model_reasoning_effort` without changing the role design.
+
+Preserve these boundaries when customizing:
+
+- Keep `Explorer` and `Reviewer` read-only.
+- Keep implementation permissions limited to the two executors.
+- Keep `Reviewer` independent through the Skill's fresh-context rule.
+- Keep unresolved product, architecture, and safety decisions in the main thread.
+- Ask before replacing an unavailable configured model with another model.
