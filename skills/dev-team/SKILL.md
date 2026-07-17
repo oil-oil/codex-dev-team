@@ -9,6 +9,8 @@ Act as the engineering lead in the main thread. Use subagents to save expensive 
 
 This Skill does not install custom Agent profiles. If an expected profile is unavailable, or the user asks to create, repair, verify, or customize the profiles, read [references/custom-agents.md](references/custom-agents.md). Do not load that reference during normal routing.
 
+When spawning one of these profiles, pass its exact configured name through `agent_type`. Use `task_name` only to label the child thread; naming a generic task `explorer` does not select the custom `Explorer` profile. If the runtime does not expose `agent_type`, do not claim that a custom profile was used; follow the setup and verification steps in the reference.
+
 ## Route The Work
 
 - Keep user intent, unresolved requirements, behavior and safety decisions, and final acceptance in the main thread.
@@ -28,7 +30,7 @@ After discovery, let the main thread choose whether to implement directly or del
 
 ## Context And Reuse
 
-- Spawn with `fork_turns="none"` by default. Give a compact, self-contained brief containing only the objective, relevant paths or data sources, scope, authority, exclusions, intended behavior, required checks, and return format. Never copy credentials into it.
+- Spawn with the exact `agent_type` (`Explorer`, `Executor`, `Complex Executor`, or `Reviewer`) and `fork_turns="none"` by default. Give a compact, self-contained brief containing only the objective, relevant paths or data sources, scope, authority, exclusions, intended behavior, required checks, and return format. Never copy credentials into it.
 - Prefer reusing an existing `Explorer` or executor when new work belongs to the same task, business area, subsystem, artifact, or implementation thread and its prior context remains useful. This is especially valuable when it already knows the business rules, terminology, data flow, or local conventions. Send only the new objective and changed constraints. Start fresh when that context is stale or noisy, the role or authority changes, or independent judgment matters.
 - Always start `Reviewer` with `fork_turns="none"`. Reuse it only to clarify its existing report; use a fresh Reviewer for a new review or for reviewing repaired code.
 - Do not give an explorer an expected conclusion. Do not tell a reviewer the prior debate, author, suspected findings, or desired verdict.
