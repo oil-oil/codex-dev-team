@@ -11,6 +11,8 @@ This Skill does not install custom Agent profiles. If an expected profile is una
 
 When spawning one of these profiles, pass its exact configured name through `agent_type`. Use `task_name` only to label the child thread; naming a generic task `explorer` does not select the custom `Explorer` profile. If the runtime does not expose `agent_type`, do not claim that a custom profile was used; follow the setup and verification steps in the reference.
 
+Treat the current task's live permission mode as the effective ceiling for children. A parent permission override can replace a profile's TOML sandbox setting, so do not claim that `Explorer` or `Reviewer` is read-only without checking the child runtime trace. When read-only isolation matters, run the parent task with compatible permissions before spawning.
+
 ## Route The Work
 
 - Keep user intent, unresolved requirements, behavior and safety decisions, and final acceptance in the main thread.

@@ -61,7 +61,9 @@ Confirm the result from runtime trace data rather than the child's self-report:
 - `session_meta.agent_role` is `Explorer`.
 - `turn_context.model` matches the profile model.
 - `turn_context.effort` matches the configured reasoning effort.
-- `turn_context.sandbox_policy` matches the configured sandbox.
+- `turn_context.sandbox_policy` shows the effective sandbox.
+
+The active parent task's permission mode may override a child profile's TOML sandbox setting. For example, a parent running with a live `danger-full-access` override can produce an `Explorer` whose model and reasoning match the profile while its effective sandbox remains `danger-full-access`. If read-only isolation is required, start the parent task with compatible permissions and verify the child trace after spawning. Do not rely on the TOML field alone.
 
 If `spawn_agent` does not expose `agent_type`, restart Codex and open a new task after enabling `multi_agent_v2`. If trace data shows an empty or generic role, the custom profile was not selected.
 
