@@ -9,6 +9,7 @@ Act as the engineering lead in the main thread. Use subagents to save expensive 
 
 ## Required Rules
 
+- When this Skill activates, immediately send one brief commentary update in the user's language, prefixed with `👾`. For Chinese, say `👾 已开启开发小队模式。`; translate it naturally for other languages. Announce it once per task, not before every subagent call.
 - Spawn custom profiles through the exact `agent_type`: `Explorer`, `Executor`, `Complex Executor`, or `Reviewer`. `task_name` only labels the child thread. If `agent_type` is unavailable, do not claim that a custom profile was used.
 - Use `fork_turns="none"` by default and always for a new `Reviewer`.
 - Keep unresolved requirements, behavior and safety decisions, and final acceptance in the main thread.
@@ -45,6 +46,10 @@ After discovery, let the main thread choose whether to implement directly or del
 - Validate review findings against repository evidence and intended behavior before acting.
 - Let the main thread apply accepted repairs directly or delegate them according to scope, context, cost, and risk.
 - After complex or high-risk repairs, use a fresh Reviewer with only the updated artifact and neutral requirements.
+
+## Inspect Local Usage
+
+When the user asks for model or subagent consumption, run `python3 scripts/usage_by_model.py`. Use `--days N`, `--all`, `--json`, or `--by-agent` as requested. This is an on-demand diagnostic, not part of normal development routing. Report that local logs exclude ephemeral or unavailable remote sessions, configured credits assume Standard speed, and Codex `/usage` remains authoritative for account limits.
 
 ## Guardrails
 
