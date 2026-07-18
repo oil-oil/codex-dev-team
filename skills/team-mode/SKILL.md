@@ -11,14 +11,19 @@ Lead the task in the main thread. Use the smallest useful set of subagents to is
 
 - When this Skill activates, immediately send one brief commentary update in the user's language, prefixed with `👾`. For Chinese, say `👾 已开启小队模式。`; translate naturally for other languages. Announce it once per task, not before every subagent call.
 - Activating Team Mode does not require spawning any subagent. Keep clear, short, low-risk work in the main thread when delegation or independent review would cost more than it adds. Do not launch an Executor or Reviewer merely to complete a role sequence.
+- Before each spawn, identify one material benefit: useful parallelism, context isolation, lower-cost bounded execution, or independent judgment. Count briefing, inspection, rework, and waiting as coordination cost. An explicit Team Mode request activates this routing guide; it does not by itself make a spawn worthwhile.
 - Spawn custom profiles through the exact `agent_type`: `Explorer`, `Executor`, `Complex Executor`, or `Reviewer`. `task_name` only labels the child thread. If `agent_type` is unavailable, do not claim that a custom profile was used.
+- Keep routing and fan-out in the main thread. A child may spawn another Agent only when its brief explicitly delegates a bounded orchestration task; otherwise it must return evidence or a blocker to the parent.
 - Use `fork_turns="none"` by default and always for a new `Reviewer`.
 - Keep unresolved user intent, product, editorial, architecture, and safety decisions, plus final acceptance, in the main thread.
 - Keep one writer per shared artifact, working tree, or mutable system. Parallel writers require isolated targets or disjoint, stable ownership.
 - Inspect the actual artifacts, sources, diffs, and verification output before accepting delegated work.
+- If a child errors, times out, or is interrupted, inspect shared artifacts and trace evidence before retrying. Retry a transient failure at most once and only when no usable result exists; otherwise recover in the main thread or re-scope the remaining work.
 - Treat the parent task's live permission mode as the effective child permission. Do not infer read-only isolation from TOML alone; use the onboarding or diagnostic verification in the reference when permissions need confirmation.
 
 This Skill does not install custom Agent profiles. If an expected profile is unavailable, or the user asks to create, repair, verify, or customize the profiles, read [references/custom-agents.md](references/custom-agents.md). Do not load that reference during normal routing.
+
+When the user asks to evaluate Team Mode itself, compare models or reasoning effort, or measure whether delegation was worthwhile, read [references/evaluation.md](references/evaluation.md) before designing the trial.
 
 ## Route The Work
 
@@ -47,11 +52,11 @@ After discovery, let the main thread choose whether to continue directly or dele
 
 - Validate findings against the underlying sources, artifact, and intended outcome before acting.
 - Let the main thread apply accepted repairs directly or delegate them according to scope, context, cost, and risk.
-- After consequential repairs, use a fresh Reviewer with only the updated artifact and neutral requirements.
+- When the risk assessment calls for independent review after consequential repairs, use a fresh Reviewer with only the updated artifact and neutral requirements.
 
 ## Inspect Local Usage
 
-When the user asks for model or subagent consumption, run `python3 scripts/usage_by_model.py`. Use `--days N`, `--all`, `--json`, or `--by-agent` as requested. This is an on-demand diagnostic, not part of normal routing. Report that local logs exclude ephemeral or unavailable remote sessions, configured credits assume Standard speed, and Codex `/usage` remains authoritative for account limits.
+When the user asks for model or subagent consumption, run `python3 scripts/usage_by_model.py`. For the active task use `--task-id current --by-agent --by-session`; for broader history use `--days N` or `--all`, with `--json` when structured output helps. This is an on-demand diagnostic, not part of normal routing. Report that local logs exclude ephemeral or unavailable remote sessions, configured credits assume Standard speed, and Codex `/usage` remains authoritative for account limits.
 
 ## Guardrails
 

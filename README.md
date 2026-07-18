@@ -23,11 +23,14 @@ Luna keeps routine exploration and execution economical. Sol is reserved for con
 
 - Use Team Mode when delegation, parallel work, context isolation, lower-cost execution, or independent review has clear value.
 - Team Mode may use no subagents at all. The main thread handles straightforward work when an Executor or Reviewer would add more coordination than value.
+- Before every spawn, identify the material benefit and count briefing, inspection, waiting, and rework as coordination cost. Explicitly invoking Team Mode does not make a spawn mandatory.
 - Give non-trivial read-only discovery to `Explorer`; the main thread can wait instead of repeating the same work.
 - After discovery, the main thread chooses whether to continue directly or delegate.
 - Reuse an Explorer or executor while its knowledge of the same topic, system, artifact, or workstream remains useful.
 - Use `Reviewer` only when fresh independent judgment has clear value, and start every new Reviewer with no inherited conversation.
+- Keep fan-out in the main thread; children do not create more Agents unless their brief explicitly delegates bounded orchestration.
 - Parallelize only genuinely independent work and keep one writer per shared target.
+- After a child error or interruption, inspect shared artifacts before retrying; recover usable work instead of automatically repeating it.
 - The main thread inspects the actual sources, artifacts, changes, and verification before accepting delegated work.
 
 Casual conversation, simple lookups, and tasks whose coordination cost exceeds the work stay in the main thread.
@@ -66,9 +69,10 @@ codex-team-mode/
 ├── assets/readme/           # GitHub-safe SVG visuals
 ├── skills/team-mode/        # Installable Skill
 │   ├── agents/openai.yaml
-│   ├── references/custom-agents.md
+│   ├── references/         # Profile setup and evaluation guidance
 │   ├── scripts/usage_by_model.py
 │   └── SKILL.md
+├── tests/                   # Usage attribution regression tests
 ├── LICENSE
 └── README.md
 ```
