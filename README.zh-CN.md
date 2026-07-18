@@ -6,7 +6,7 @@
   <img src="./assets/readme/agent-map.svg" width="100%" alt="小队模式中的四个角色分别负责探索、明确执行、复杂执行和独立复审，主线程负责带队与验收。">
 </p>
 
-`team-mode`（小队模式）是一个负责协调四个自定义 Agent 的 Codex Skill，适用于有一定规模的开发、调研、分析、规划、文档、数据和内容任务。主线程保留尚未解决的决策并验收最终结果；子 Agent 负责适合专注上下文、较低成本、安全并行或独立判断的工作。
+`team-mode`（小队模式）是一个负责协调四个工作 Agent 的 Codex Skill，适用于有一定规模的开发、调研、分析、规划、文档、数据和内容任务。主线程保留尚未解决的决策并验收最终结果；子 Agent 负责适合专注上下文、较低成本、安全并行或独立判断的工作。另有一个低成本 `default` 哨兵，专门拒绝任何漏传 `agent_type` 的派发。
 
 它提供的是调度方法，不要求每次走完固定流程。
 
@@ -16,6 +16,8 @@
 - **Executor（执行者）· Luna Medium · 可写**：完成边界清楚、风险较低，而且能明确验证的工作。
 - **Complex Executor（复杂执行者）· Sol High · 可写**：在目标和安全边界已经明确后，完成复杂但有边界的任务。
 - **Reviewer（复审者）· Sol High · 只读**：使用全新上下文独立检查稳定的代码、报告、方案、分析、数据和其他产物。
+
+每次派发都必须通过 `agent_type` 显式传入上面四个名称之一。`task_name` 只是标签，`default` 永远不是工作角色。
 
 Luna 承担日常探索和执行，控制成本；Sol 留给重要的复杂执行与独立复审，因为这些环节漏掉关键细节的代价更高。
 
@@ -47,9 +49,11 @@ TOML 里的 sandbox 是 profile 默认值，不是绝对隔离边界；父线程
 npx skills add oil-oil/codex-team-mode
 ```
 
-四个自定义 Agent 配置与 Skill 分开安装。个人使用时，把 [`agents/`](./agents) 里的 TOML 模板复制到 `~/.codex/agents/`；只给单个项目使用时，复制到 `<repository>/.codex/agents/`。
+四个工作 Agent 配置和默认开启的 `default` 派发哨兵与 Skill 分开安装。个人使用时，把 [`agents/`](./agents) 里的五个 TOML 模板复制到 `~/.codex/agents/`；只给单个项目使用时，复制到 `<repository>/.codex/agents/`。onboarding 只在首次配置、Profile 缺失，或用户明确要求修复与验证时运行一次。
 
 准确文件名、安全安装、验证、修复和模型调整都写在 [自定义 Agent 配置说明](./skills/team-mode/references/custom-agents.md) 里。如果安装后没有立即显示新的 Agent，可以新建一个 Codex 任务或重启 Codex。
+
+onboarding 完成后，Codex 会主动说明安装了什么，以及怎样只关闭哨兵。关闭操作是把 `default.toml` 可恢复地移出活动 `agents` 目录，四个工作 Profile 会继续保留。
 
 ## 使用
 
@@ -69,7 +73,7 @@ npx skills add oil-oil/codex-team-mode
 
 ```text
 codex-team-mode/
-├── agents/                  # 四个 Codex 自定义 Agent 模板
+├── agents/                  # 四个工作 Agent 与一个派发哨兵
 ├── assets/readme/           # GitHub-safe SVG 视觉素材
 ├── skills/team-mode/        # 可以安装的 Skill
 │   ├── agents/openai.yaml

@@ -1,7 +1,7 @@
 interface:
   display_name: "Team Mode"
   short_description: "Coordinate focused subagents across substantial tasks"
-  default_prompt: "Use $team-mode for this substantial task with the smallest useful set of focused subagents, giving each one a complete dispatch packet with sources, checks, and a stop condition."
+  default_prompt: "Use $team-mode for this substantial task with the smallest useful set of focused subagents, explicitly passing agent_type for every spawn and giving each child complete sources, checks, and a stop condition."
 
 policy:
   allow_implicit_invocation: true

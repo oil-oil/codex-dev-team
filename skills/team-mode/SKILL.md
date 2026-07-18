@@ -7,12 +7,28 @@ description: Coordinate custom subagents for substantial development, research, 
 
 Lead the task in the main thread. Use the smallest useful set of subagents to isolate noisy work, reduce expensive main-agent context, run independent work in parallel, or obtain a fresh review. Do not turn the roles into a mandatory pipeline.
 
+## Dispatch Gate
+
+Every `spawn_agent` call must explicitly pass `agent_type` as exactly one of `Explorer`, `Executor`, `Complex Executor`, or `Reviewer`.
+
+- Never omit `agent_type` and never pass `default`. The `default` profile is a fail-closed dispatch guard, not a working Agent.
+- Never use `task_name` to select a profile; it only labels the child thread.
+- If the intended custom profile is unavailable, keep the work in the main thread or repair the profiles. Do not silently use a generic child.
+- If a child returns the dispatch-guard message or its trace shows `default` / `subagent/unknown`, reject its output and respawn only after selecting the intended custom profile explicitly.
+
+Read [references/custom-agents.md](references/custom-agents.md) only when installing, repairing, or verifying the four working profiles and the `default` guard. The controlled onboarding self-test described there is the only time Team Mode deliberately omits `agent_type`.
+
+## One-Time Onboarding
+
+Do not inspect Agent files, load onboarding instructions, or repeat setup explanations during normal Team Mode routing. Treat the active `spawn_agent.agent_type` choices and descriptions as runtime readiness evidence. When all four working profiles are available and `default` is described as the dispatch guard, skip onboarding without mentioning it.
+
+Only read [references/custom-agents.md](references/custom-agents.md) and start onboarding when a required profile or guard is unavailable, or when the user explicitly asks to install, repair, verify, move, disable, or customize them. Get authorization before writing personal or project configuration. After a successful setup or repair, tell the user once what was installed, which models are assigned, that the guard affects omitted/default subagent dispatches in its installation scope, when restart or a new task is required, and how to disable or restore only the guard without removing the four working profiles.
+
 ## Required Rules
 
 - When this Skill activates, immediately send one brief commentary update in the user's language, prefixed with `👾`. For Chinese, say `👾 已开启小队模式。`; translate naturally for other languages. Announce it once per task, not before every subagent call.
 - Activating Team Mode does not require spawning any subagent. Keep clear, short, low-risk work in the main thread when delegation or independent review would cost more than it adds. Do not launch an Executor or Reviewer merely to complete a role sequence.
 - Before each spawn, identify one material benefit: useful parallelism, context isolation, lower-cost bounded execution, or independent judgment. Count briefing, inspection, rework, and waiting as coordination cost. An explicit Team Mode request activates this routing guide; it does not by itself make a spawn worthwhile.
-- Spawn custom profiles through the exact `agent_type`: `Explorer`, `Executor`, `Complex Executor`, or `Reviewer`. `task_name` only labels the child thread. If `agent_type` is unavailable, do not claim that a custom profile was used.
 - Keep all routing and fan-out in the main thread. Under standard Team Mode, children never spawn descendants; they return evidence, artifacts, or blockers to the parent. Treat an explicit user request for recursive delegation as a separate scope expansion with its own permission, depth, and usage decision.
 - Use `fork_turns="none"` by default and always for a new `Reviewer`.
 - Keep unresolved user intent, product, editorial, architecture, and safety decisions, plus final acceptance, in the main thread.
@@ -20,8 +36,6 @@ Lead the task in the main thread. Use the smallest useful set of subagents to is
 - Inspect the actual artifacts, sources, diffs, and verification output before accepting delegated work.
 - If a child errors, times out, or is interrupted, inspect shared artifacts and trace evidence before retrying. Retry a transient failure at most once and only when no usable result exists; otherwise recover in the main thread or re-scope the remaining work.
 - Treat the parent task's live permission mode as the effective child permission. Do not infer read-only isolation from TOML alone; use the onboarding or diagnostic verification in the reference when permissions need confirmation.
-
-This Skill does not install custom Agent profiles. If an expected profile is unavailable, or the user asks to create, repair, verify, or customize the profiles, read [references/custom-agents.md](references/custom-agents.md). Do not load that reference during normal routing.
 
 When the user asks to evaluate Team Mode itself, compare models or reasoning effort, or measure whether delegation was worthwhile, read [references/evaluation.md](references/evaluation.md) before designing the trial.
 

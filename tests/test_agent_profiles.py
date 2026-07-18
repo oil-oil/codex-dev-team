@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 PROFILES = {
+    "default.toml": ("default", "gpt-5.6-terra", "low", "read-only"),
     "Explorer.toml": ("Explorer", "gpt-5.6-luna", "medium", "read-only"),
     "Executor.toml": ("Executor", "gpt-5.6-luna", "medium", "workspace-write"),
     "Complex Executor.toml": ("Complex Executor", "gpt-5.6-sol", "high", "workspace-write"),
@@ -26,10 +27,20 @@ class AgentProfileTests(unittest.TestCase):
                     data["sandbox_mode"],
                 )
                 self.assertEqual(actual, expected)
-                self.assertIn(
-                    "Do not spawn subagents; return evidence or blockers to the parent.",
-                    data["developer_instructions"],
-                )
+                if filename != "default.toml":
+                    self.assertIn(
+                        "Do not spawn subagents; return evidence or blockers to the parent.",
+                        data["developer_instructions"],
+                    )
+
+    def test_default_profile_fails_closed(self) -> None:
+        data = tomllib.loads((ROOT / "agents" / "default.toml").read_text(encoding="utf-8"))
+        instructions = data["developer_instructions"]
+        self.assertIn("dispatch guard, not a working subagent", instructions)
+        self.assertIn("Do not inspect files, call tools, spawn", instructions)
+        self.assertIn("DISPATCH BLOCKED", instructions)
+        self.assertIn("the delegated task was not executed", instructions)
+        self.assertIn("agent_type was omitted or set to default", instructions)
 
     def test_complex_executor_reports_risk_without_recommending_another_agent(self) -> None:
         data = tomllib.loads((ROOT / "agents" / "Complex Executor.toml").read_text(encoding="utf-8"))

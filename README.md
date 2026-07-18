@@ -6,7 +6,7 @@
   <img src="./assets/readme/agent-map.svg" width="100%" alt="Four character-driven Team Mode agents divide exploration, bounded execution, complex execution, and independent review while the main thread leads and verifies the work.">
 </p>
 
-`team-mode` is a Codex Skill for coordinating four custom agents across substantial development, research, analysis, planning, document, data, and content tasks. The main thread keeps unresolved decisions and verifies the final result; subagents take on work that benefits from focused context, lower cost, safe parallelism, or independent judgment.
+`team-mode` is a Codex Skill for coordinating four working agents across substantial development, research, analysis, planning, document, data, and content tasks. The main thread keeps unresolved decisions and verifies the final result; subagents take on work that benefits from focused context, lower cost, safe parallelism, or independent judgment. A separate low-cost `default` guard rejects any spawn that omits `agent_type`.
 
 It is a routing guide, not a mandatory pipeline.
 
@@ -16,6 +16,8 @@ It is a routing guide, not a mandatory pipeline.
 - **Executor（执行者）· Luna Medium · workspace-write** — completes clear, bounded, low-risk work with deterministic checks.
 - **Complex Executor（复杂执行者）· Sol High · workspace-write** — completes substantial but bounded work after the intended outcome and safety boundaries are clear.
 - **Reviewer（复审者）· Sol High · read-only** — independently checks stable code, reports, plans, analyses, data, and other artifacts from fresh context.
+
+Every spawn must explicitly pass one of those four names through `agent_type`. `task_name` is only a label, and `default` is never a working role.
 
 Luna keeps routine exploration and execution economical. Sol is reserved for consequential execution and independent review, where missing an important detail costs more.
 
@@ -47,9 +49,11 @@ Install the Skill:
 npx skills add oil-oil/codex-team-mode
 ```
 
-The four custom Agent profiles are separate from the Skill. Copy the TOML templates in [`agents/`](./agents) to `~/.codex/agents/` for personal use or `<repository>/.codex/agents/` for one project.
+The four working Agent profiles and the default-on `default` dispatch guard are separate from the Skill. Copy the five TOML templates in [`agents/`](./agents) to `~/.codex/agents/` for personal use or `<repository>/.codex/agents/` for one project. Onboarding runs only for first setup, missing profiles, or explicit repair and verification requests.
 
 See [Custom Agent Profiles](./skills/team-mode/references/custom-agents.md) for exact filenames, safe installation, validation, repair, and model customization. Open a new Codex task or restart Codex if newly installed profiles do not appear immediately.
+
+After onboarding, Codex reports what was installed and how to disable only the guard. Disabling it is a recoverable move of `default.toml` outside the active `agents` directory; the four working profiles remain installed.
 
 ## Use
 
@@ -69,7 +73,7 @@ You can change `model` and `model_reasoning_effort` in `agents/*.toml`. Preserve
 
 ```text
 codex-team-mode/
-├── agents/                  # Four custom Codex Agent templates
+├── agents/                  # Four working profiles plus one dispatch guard
 ├── assets/readme/           # GitHub-safe SVG visuals
 ├── skills/team-mode/        # Installable Skill
 │   ├── agents/openai.yaml
