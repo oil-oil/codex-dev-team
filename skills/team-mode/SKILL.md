@@ -89,7 +89,7 @@ After discovery, let the main thread choose whether to continue directly or dele
 
 ## Inspect Local Usage
 
-When the user asks for model or subagent consumption, run `python3 scripts/usage_by_model.py`. For the active task use `--task-id current --by-agent --by-session`; for broader history use `--days N` or `--all`, with `--json` when structured output helps. This is an on-demand diagnostic, not part of normal routing. Report that local logs exclude ephemeral or unavailable remote sessions, configured credits assume Standard speed, and Codex `/usage` remains authoritative for account limits.
+When the user asks for model or subagent consumption, run `python3 scripts/usage_by_model.py`. For the active task use `--task-id current --by-agent --by-session`; for broader history use `--days N` or `--all`, with `--json` when structured output helps. Report processed tokens plus uncached input, cached input, output, reasoning output, and estimated credits; do not hide the token totals behind credits. Treat reasoning as a subset of output and processed tokens as input plus output, so neither cached nor reasoning tokens are double-counted. Never present one universal credits-to-token conversion: use the bundled rate card because each model and token type has a different rate, and label the observed processed-tokens-per-credit value as workload-specific. This is an on-demand diagnostic, not part of normal routing. Report that local logs exclude ephemeral or unavailable remote sessions, configured credits assume Standard speed, and Codex `/usage` remains authoritative for account limits.
 
 ## Guardrails
 

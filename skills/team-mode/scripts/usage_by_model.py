@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-RATE_DATE = "2026-07-17"
+RATE_DATE = "2026-07-18"
+RATE_SOURCE = "https://help.openai.com/en/articles/20001106-codex-rate-card"
 RATES = {
     "gpt-5.6-luna": {"input": 25.0, "cached": 2.5, "output": 150.0},
     "gpt-5.6-terra": {"input": 62.5, "cached": 6.25, "output": 375.0},
@@ -329,23 +330,65 @@ def scan(
 
 def usage_row(name: str, usage: dict[str, int]) -> dict[str, Any]:
     uncached = max(usage["input"] - usage["cached"], 0)
+    total = usage["input"] + usage["output"]
     rate = RATES.get(name.split(" · ")[-1])
     credits = None
+    credit_breakdown = None
     if rate:
-        credits = (
-            uncached * rate["input"]
-            + usage["cached"] * rate["cached"]
-            + usage["output"] * rate["output"]
-        ) / 1_000_000
+        credit_breakdown = {
+            "uncached_input": uncached * rate["input"] / 1_000_000,
+            "cached_input": usage["cached"] * rate["cached"] / 1_000_000,
+            "output": usage["output"] * rate["output"] / 1_000_000,
+        }
+        credits = sum(credit_breakdown.values())
     return {
         "name": name,
         "token_events": usage["events"],
+        "total_processed_tokens": total,
         "input_tokens": usage["input"],
         "cached_input_tokens": usage["cached"],
         "uncached_input_tokens": uncached,
         "output_tokens": usage["output"],
         "reasoning_output_tokens": usage["reasoning"],
+        "estimated_standard_credit_breakdown": credit_breakdown,
         "estimated_standard_credits": credits,
+        "effective_processed_tokens_per_credit": total / credits if credits else None,
+    }
+
+
+def rate_card_rows() -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for model, rate in RATES.items():
+        result.append({
+            "model": model,
+            "credits_per_million_tokens": {
+                "uncached_input": rate["input"],
+                "cached_input": rate["cached"],
+                "output": rate["output"],
+            },
+            "tokens_per_credit": {
+                "uncached_input": 1_000_000 / rate["input"],
+                "cached_input": 1_000_000 / rate["cached"],
+                "output": 1_000_000 / rate["output"],
+            },
+        })
+    return result
+
+
+def usage_summary(data: list[dict[str, Any]]) -> dict[str, Any]:
+    total_tokens = sum(row["total_processed_tokens"] for row in data)
+    known_credits = sum(row["estimated_standard_credits"] or 0 for row in data)
+    return {
+        "token_events": sum(row["token_events"] for row in data),
+        "total_processed_tokens": total_tokens,
+        "input_tokens": sum(row["input_tokens"] for row in data),
+        "cached_input_tokens": sum(row["cached_input_tokens"] for row in data),
+        "uncached_input_tokens": sum(row["uncached_input_tokens"] for row in data),
+        "output_tokens": sum(row["output_tokens"] for row in data),
+        "reasoning_output_tokens": sum(row["reasoning_output_tokens"] for row in data),
+        "estimated_standard_credits": known_credits,
+        "effective_processed_tokens_per_credit": total_tokens / known_credits if known_credits else None,
+        "unpriced_models": [row["name"] for row in data if row["estimated_standard_credits"] is None],
     }
 
 
@@ -392,29 +435,54 @@ def session_rows(sessions: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def print_table(title: str, data: list[dict[str, Any]]) -> None:
     print(title)
-    print(f"{'Model / Agent':<34} {'Input':>14} {'Cached':>14} {'Output':>12} {'Reason':>12} {'Credits*':>12} {'Share':>8}")
-    print("-" * 112)
+    print(
+        f"{'Model / Agent':<34} {'Processed':>14} {'Uncached':>12} {'Cached':>12} "
+        f"{'Output':>11} {'Reason':>10} {'Credits*':>11} {'Tok/Credit':>12} {'Share':>8}"
+    )
+    print("-" * 136)
     for row in data:
         credits = row["estimated_standard_credits"]
         share = row["known_credit_share_percent"]
+        tokens_per_credit = row["effective_processed_tokens_per_credit"]
         credits_text = f"{credits:,.2f}" if credits is not None else "n/a"
         share_text = f"{share:.2f}%" if share is not None else "n/a"
+        tokens_per_credit_text = f"{tokens_per_credit:,.0f}" if tokens_per_credit is not None else "n/a"
         print(
             f"{row['name']:<34} "
-            f"{row['input_tokens']:>14,} "
-            f"{row['cached_input_tokens']:>14,} "
-            f"{row['output_tokens']:>12,} "
-            f"{row['reasoning_output_tokens']:>12,} "
-            f"{credits_text:>12} "
+            f"{row['total_processed_tokens']:>14,} "
+            f"{row['uncached_input_tokens']:>12,} "
+            f"{row['cached_input_tokens']:>12,} "
+            f"{row['output_tokens']:>11,} "
+            f"{row['reasoning_output_tokens']:>10,} "
+            f"{credits_text:>11} "
+            f"{tokens_per_credit_text:>12} "
             f"{share_text:>8}"
         )
+    summary = usage_summary(data)
+    effective = summary["effective_processed_tokens_per_credit"]
+    effective_text = f"{effective:,.0f}" if effective is not None else "n/a"
+    print("-" * 136)
+    print(
+        f"{'TOTAL':<34} "
+        f"{summary['total_processed_tokens']:>14,} "
+        f"{summary['uncached_input_tokens']:>12,} "
+        f"{summary['cached_input_tokens']:>12,} "
+        f"{summary['output_tokens']:>11,} "
+        f"{summary['reasoning_output_tokens']:>10,} "
+        f"{summary['estimated_standard_credits']:>11,.2f} "
+        f"{effective_text:>12} "
+        f"{'100.00%':>8}"
+    )
     print()
 
 
 def print_session_table(data: list[dict[str, Any]]) -> None:
     print("By session")
-    print(f"{'Role / Model':<26} {'Agent path':<22} {'Status':<11} {'Elapsed':>8} {'Sandbox':<16} {'Input':>10} {'Output':>9} {'Credits*':>10}")
-    print("-" * 114)
+    print(
+        f"{'Role / Model':<26} {'Agent path':<22} {'Status':<11} {'Elapsed':>8} "
+        f"{'Sandbox':<16} {'Processed':>11} {'Uncached':>10} {'Cached':>10} {'Output':>9} {'Credits*':>10}"
+    )
+    print("-" * 144)
     for row in data:
         credits = row["estimated_standard_credits"]
         credits_text = f"{credits:,.2f}" if credits is not None else "n/a"
@@ -423,7 +491,26 @@ def print_session_table(data: list[dict[str, Any]]) -> None:
         print(
             f"{row['name']:<26} {(row['agent_path'] or '/root'):<22} "
             f"{row.get('terminal_status', 'incomplete'):<11} {elapsed:>8} {sandbox:<16} "
-            f"{row['input_tokens']:>10,} {row['output_tokens']:>9,} {credits_text:>10}"
+            f"{row['total_processed_tokens']:>11,} {row['uncached_input_tokens']:>10,} "
+            f"{row['cached_input_tokens']:>10,} {row['output_tokens']:>9,} {credits_text:>10}"
+        )
+    print()
+
+
+def print_rate_card() -> None:
+    print("Standard rate card · credits per 1M tokens / tokens per credit")
+    print(
+        f"{'Model':<18} {'Uncached cr':>11} {'Cached cr':>10} {'Output cr':>10} "
+        f"{'Uncached tok/cr':>15} {'Cached tok/cr':>15} {'Output tok/cr':>14}"
+    )
+    print("-" * 110)
+    for row in rate_card_rows():
+        rates = row["credits_per_million_tokens"]
+        equivalents = row["tokens_per_credit"]
+        print(
+            f"{row['model']:<18} {rates['uncached_input']:>10,.3f} {rates['cached_input']:>10,.3f} "
+            f"{rates['output']:>10,.3f} {equivalents['uncached_input']:>14,.0f} "
+            f"{equivalents['cached_input']:>15,.0f} {equivalents['output']:>14,.0f}"
         )
     print()
 
@@ -476,6 +563,9 @@ def main() -> int:
             "session_files_included": included_count,
             "malformed_lines_skipped": malformed,
             "credit_rates_as_of": RATE_DATE,
+            "credit_rate_source": RATE_SOURCE,
+            "credit_rates": rate_card_rows(),
+            "summary": usage_summary(model_rows),
             "models": model_rows,
             "agents": agent_rows,
             "sessions": detailed_sessions,
@@ -487,12 +577,16 @@ def main() -> int:
 
     print(f"Codex local usage · {period}")
     print(f"Scanned {file_count} session files · included {included_count} · Standard credit rates as of {RATE_DATE}")
+    print("Processed tokens = input (cached included) + output; reasoning is already included in output.")
     print()
     print_table("By model", model_rows)
     if args.by_agent:
         print_table("By Agent role", agent_rows)
     if args.by_session:
         print_session_table(detailed_sessions)
+    print_rate_card()
+    print(f"Rate source: {RATE_SOURCE}")
+    print("* Tok/Credit is the observed processed-token ratio for that row, not a universal conversion. ")
     print("* Estimated Standard credits. " + " ".join(limitations))
     return 0
 
