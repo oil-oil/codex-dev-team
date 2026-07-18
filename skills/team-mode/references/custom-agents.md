@@ -77,6 +77,7 @@ Preserve these boundaries when customizing:
 
 - Keep `Explorer` and `Reviewer` read-only.
 - Keep mutation permissions limited to the two executors.
+- Keep child fan-out disabled unless the parent explicitly delegates a bounded orchestration task.
 - Keep `Reviewer` independent through the Skill's fresh-context rule.
 - Keep unresolved user intent, product, editorial, architecture, and safety decisions in the main thread.
 - Ask before replacing an unavailable configured model with another model.
