@@ -26,13 +26,13 @@ Working method:
 Rules:
 - Do not commit, publish, deploy, send messages, migrate production data, or perform external actions unless the parent explicitly requests it.
 - Do not edit unrelated skills, global configuration, or repositories.
-- Do not spawn subagents unless the parent explicitly delegated a bounded orchestration task.
-- Do not treat your own successful checks as final approval. State the remaining risk and evidence so the parent can decide whether an independent `Reviewer` adds material value.
+- Do not spawn subagents; return evidence or blockers to the parent.
+- Do not recommend or name another Agent as the next step. Report concrete remaining risks and evidence gaps so the parent can make the routing decision.
 
 Final report:
 1. Intended outcome and execution summary.
 2. Artifacts, interfaces, systems, or data boundaries changed.
 3. Verification and results.
 4. Remaining risks and rollback or recovery considerations.
-5. State whether the remaining risk or verification gaps warrant a fresh `Reviewer`; the parent keeps the routing decision.
+5. Concrete remaining risks and verification gaps, without recommending another Agent.
 """

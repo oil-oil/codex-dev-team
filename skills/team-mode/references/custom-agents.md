@@ -2,16 +2,11 @@
 
 Read this reference only when the expected custom Agent profiles are missing, the user asks to install or change them, or their names, models, reasoning effort, or permissions need verification. Normal task routing does not require this file.
 
-## Enable Custom Profile Routing
+## Confirm Runtime Availability
 
-Custom profile selection requires a runtime whose `spawn_agent` tool exposes `agent_type`. On current Codex CLI releases, enable the required multi-agent path persistently:
+Current Codex releases enable subagent workflows by default. Custom profile selection still requires a runtime whose `spawn_agent` tool exposes `agent_type`; the tool surface in the active task is stronger evidence than a remembered feature flag.
 
-```bash
-codex features enable multi_agent_v2
-codex features list | rg '^multi_agent_v2'
-```
-
-Restart Codex and open a new task after changing the feature. `multi_agent_v2` is currently under development, so its interface may change.
+If `agent_type` is missing, update or restart Codex and open a new task before testing again. Do not enable an undocumented or stale feature flag from memory. See the current [Codex subagent manual](https://learn.chatgpt.com/docs/agent-configuration/subagents.md).
 
 When spawning, pass the exact profile name through `agent_type`. `task_name` only labels the child thread and never selects a profile. Do not substitute a generic child named `explorer`, `executor`, or `reviewer` when the intended custom profile is unavailable.
 
@@ -25,6 +20,8 @@ Use these exact profile names and recommended defaults:
 - `Executor`（执行者）: `gpt-5.6-luna`, `medium`, `workspace-write`.
 - `Complex Executor`（复杂执行者）: `gpt-5.6-sol`, `high`, `workspace-write`.
 - `Reviewer`（复审者）: `gpt-5.6-sol`, `high`, `read-only`.
+
+These model IDs are repository defaults verified in the intended installation. Public Codex environments may expose a different efficiency model such as `gpt-5.6-terra`. If `gpt-5.6-luna` is unavailable, ask before substituting another model; preserve the role boundary and verify the actual runtime trace after the change.
 
 Use the canonical templates in the repository's [`agents`](https://github.com/oil-oil/codex-team-mode/tree/main/agents) directory. Do not duplicate or rewrite their developer instructions from memory.
 
@@ -41,6 +38,17 @@ Keep these filenames:
 - `Reviewer.toml`
 
 Codex identifies a custom Agent by its `name` field. Keep the names unchanged unless the Skill routing names are updated at the same time.
+
+## Keep Fan-Out Shallow
+
+Keep the global nesting limit at one so the root may spawn direct children but children cannot create descendants:
+
+```toml
+[agents]
+max_depth = 1
+```
+
+Current Codex releases default `agents.max_depth` to `1`; keep that default unless the user explicitly needs bounded recursive delegation. Choose `agents.max_threads` according to the runtime's available slots and resource budget rather than assuming the public default. The Skill still starts only the minimum useful number of Agents.
 
 ## Install Or Repair
 
@@ -65,7 +73,7 @@ Confirm the result from runtime trace data rather than the child's self-report:
 
 The active parent task's permission mode may override a child profile's TOML sandbox setting. For example, a parent running with a live `danger-full-access` override can produce an `Explorer` whose model and reasoning match the profile while its effective sandbox remains `danger-full-access`. If read-only isolation is required, start the parent task with compatible permissions and verify the child trace after spawning. Do not rely on the TOML field alone.
 
-If `spawn_agent` does not expose `agent_type`, restart Codex and open a new task after enabling `multi_agent_v2`. If trace data shows an empty or generic role, the custom profile was not selected.
+If `spawn_agent` does not expose `agent_type`, update or restart Codex and open a new task. If trace data shows an empty or generic role, the custom profile was not selected.
 
 If a required profile remains unavailable, tell the user which file or setting is missing. Continue in the main thread only when that still satisfies the user's request; do not silently substitute a differently configured Agent for security-sensitive or independent-review work.
 
@@ -77,7 +85,7 @@ Preserve these boundaries when customizing:
 
 - Keep `Explorer` and `Reviewer` read-only.
 - Keep mutation permissions limited to the two executors.
-- Keep child fan-out disabled unless the parent explicitly delegates a bounded orchestration task.
+- Keep child fan-out disabled; all standard Team Mode routing stays in the main thread.
 - Keep `Reviewer` independent through the Skill's fresh-context rule.
 - Keep unresolved user intent, product, editorial, architecture, and safety decisions in the main thread.
 - Ask before replacing an unavailable configured model with another model.

@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -150,7 +150,39 @@ def discover_traces(root: Path, cutoff: date | None) -> tuple[list[dict[str, Any
         if item:
             metadata.append(item)
     resolve_trace_tasks(metadata)
+    by_session = {item["session_id"]: item for item in metadata}
+    def depth(item: dict[str, Any]) -> int:
+        current = item
+        seen: set[str] = set()
+        value = 0
+        while True:
+            sid = str(current.get("session_id"))
+            if sid in seen:
+                return value
+            seen.add(sid)
+            parent = current.get("parent_thread_id")
+            if not parent or parent not in by_session:
+                return value
+            value += 1
+            current = by_session[parent]
+    for item in metadata:
+        item["depth"] = depth(item)
     return metadata, file_count, malformed
+
+
+def parse_timestamp(value: Any) -> datetime | None:
+    if isinstance(value, (int, float)):
+        try:
+            return datetime.fromtimestamp(value, tz=timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            return None
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
 
 
 def resolve_requested_task(metadata: list[dict[str, Any]], requested_id: str | None) -> str | None:
@@ -207,6 +239,12 @@ def scan(
         model: str | None = None
         effort: str | None = None
         usage_by_segment: dict[tuple[str, str | None], dict[str, int]] = defaultdict(blank_usage)
+        timestamps: list[datetime] = []
+        sandboxes: set[str] = set()
+        approvals: set[str] = set()
+        interrupted_count = 0
+        has_complete = False
+        last_terminal: str | None = None
         try:
             lines = path.open("r", encoding="utf-8")
         except OSError:
@@ -221,12 +259,33 @@ def scan(
                         malformed_lines += 1
                     continue
                 payload = event.get("payload") or {}
+                timestamp = parse_timestamp(event.get("timestamp") or payload.get("timestamp"))
+                if timestamp:
+                    timestamps.append(timestamp)
                 if event.get("type") == "session_meta":
                     seen_metadata = True
                 elif event.get("type") == "turn_context":
                     model = payload.get("model") or model
                     effort = payload.get("effort")
-                elif (
+                    sandbox = payload.get("sandbox_policy")
+                    if isinstance(sandbox, dict):
+                        sandbox = sandbox.get("type")
+                    if isinstance(sandbox, str) and sandbox:
+                        sandboxes.add(sandbox)
+                    approval = payload.get("approval_policy")
+                    if isinstance(approval, str) and approval:
+                        approvals.add(approval)
+                elif event.get("type") == "event_msg":
+                    event_kind = payload.get("type")
+                    if event_kind == "task_complete":
+                        has_complete = True
+                        last_terminal = "completed"
+                    elif event_kind == "task_started":
+                        last_terminal = None
+                    elif event_kind == "turn_aborted":
+                        interrupted_count += 1
+                        last_terminal = "interrupted"
+                if (
                     event.get("type") == "event_msg"
                     and payload.get("type") == "token_count"
                     and model
@@ -235,6 +294,11 @@ def scan(
                     if usage:
                         add_usage(usage_by_segment[(model, effort)], usage)
         role = trace["agent_role"]
+        started = min(timestamps) if timestamps else None
+        ended = max(timestamps) if timestamps else None
+        terminal = last_terminal or "incomplete"
+        if not usage_by_segment and model:
+            usage_by_segment[(model, effort)]
         for (session_model, session_effort), usage in usage_by_segment.items():
             merge_usage(by_model[session_model], usage)
             merge_usage(by_agent[f"{role} · {session_model}"], usage)
@@ -243,6 +307,14 @@ def scan(
                 "model": session_model,
                 "effort": session_effort,
                 "usage": usage,
+                "started_at": started.isoformat().replace("+00:00", "Z") if started else None,
+                "ended_at": ended.isoformat().replace("+00:00", "Z") if ended else None,
+                "elapsed_seconds": (ended - started).total_seconds() if started and ended else None,
+                "terminal_status": terminal,
+                "final_report_present": has_complete,
+                "interrupted_count": interrupted_count,
+                "effective_sandbox": sorted(sandboxes),
+                "approval_policy": sorted(approvals),
             })
     return (
         dict(by_model),
@@ -304,6 +376,15 @@ def session_rows(sessions: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "model": model,
             "effort": session["effort"],
             "cwd": session["cwd"],
+            "started_at": session.get("started_at"),
+            "ended_at": session.get("ended_at"),
+            "elapsed_seconds": session.get("elapsed_seconds"),
+            "terminal_status": session.get("terminal_status", "incomplete"),
+            "final_report_present": session.get("final_report_present", False),
+            "interrupted_count": session.get("interrupted_count", 0),
+            "effective_sandbox": session.get("effective_sandbox", []),
+            "approval_policy": session.get("approval_policy", []),
+            "depth": session.get("depth", 0),
         })
     result.sort(key=lambda row: (row["agent_path"] or "/root", row["session_id"], row["model"]))
     return add_credit_shares(result)
@@ -332,17 +413,17 @@ def print_table(title: str, data: list[dict[str, Any]]) -> None:
 
 def print_session_table(data: list[dict[str, Any]]) -> None:
     print("By session")
-    print(f"{'Role / Model':<34} {'Agent path':<30} {'Input':>14} {'Output':>12} {'Credits*':>12}")
-    print("-" * 108)
+    print(f"{'Role / Model':<26} {'Agent path':<22} {'Status':<11} {'Elapsed':>8} {'Sandbox':<16} {'Input':>10} {'Output':>9} {'Credits*':>10}")
+    print("-" * 114)
     for row in data:
         credits = row["estimated_standard_credits"]
         credits_text = f"{credits:,.2f}" if credits is not None else "n/a"
+        elapsed = f"{row['elapsed_seconds']:.1f}s" if row.get("elapsed_seconds") is not None else "n/a"
+        sandbox = ",".join(row.get("effective_sandbox") or []) or "n/a"
         print(
-            f"{row['name']:<34} "
-            f"{(row['agent_path'] or '/root'):<30} "
-            f"{row['input_tokens']:>14,} "
-            f"{row['output_tokens']:>12,} "
-            f"{credits_text:>12}"
+            f"{row['name']:<26} {(row['agent_path'] or '/root'):<22} "
+            f"{row.get('terminal_status', 'incomplete'):<11} {elapsed:>8} {sandbox:<16} "
+            f"{row['input_tokens']:>10,} {row['output_tokens']:>9,} {credits_text:>10}"
         )
     print()
 
@@ -369,7 +450,8 @@ def main() -> int:
         return 2
     model_rows = rows(by_model)
     agent_rows = rows(by_agent) if args.by_agent else []
-    detailed_sessions = session_rows(sessions) if args.by_session else []
+    all_session_details = session_rows(sessions)
+    detailed_sessions = all_session_details if args.by_session else []
     if resolved_task_id:
         period = f"task {resolved_task_id}"
     else:
@@ -378,7 +460,11 @@ def main() -> int:
         "Local retained sessions only; ephemeral and unavailable remote sessions are excluded.",
         "Credits use configured Standard rates and do not detect mixed Fast usage.",
         "Account limits and resets remain authoritative in Codex /usage.",
+        "Runtime fields come from local trace events; completed means only that the session has task_complete, not that artifact quality is assured.",
     ]
+    status_counts = {status: sum(1 for row in all_session_details if row.get("terminal_status") == status)
+                     for status in ("completed", "interrupted", "incomplete")}
+    max_depth = max((row.get("depth", 0) for row in all_session_details), default=0)
 
     if args.json:
         print(json.dumps({
@@ -393,6 +479,8 @@ def main() -> int:
             "models": model_rows,
             "agents": agent_rows,
             "sessions": detailed_sessions,
+            "session_status_counts": status_counts,
+            "max_subagent_depth": max_depth,
             "limitations": limitations,
         }, ensure_ascii=False, indent=2))
         return 0

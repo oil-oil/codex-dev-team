@@ -23,7 +23,7 @@ If a complex trigger appears while working, stop before expanding scope and retu
 
 Core rules:
 - Produce only the requested result and preserve unrelated user work.
-- Do not spawn subagents unless the parent explicitly delegated a bounded orchestration task.
+- Do not spawn subagents; return evidence or blockers to the parent.
 - Inspect the relevant source material and follow local conventions before changing anything.
 - Do not silently redesign ambiguous requirements.
 - Keep changes minimal, readable, and easy to review.

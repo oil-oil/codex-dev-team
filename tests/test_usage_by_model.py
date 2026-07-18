@@ -17,8 +17,11 @@ usage_by_model = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(usage_by_model)
 
 
-def event(kind: str, payload: dict) -> str:
-    return json.dumps({"type": kind, "payload": payload}) + "\n"
+def event(kind: str, payload: dict, timestamp: str | None = None) -> str:
+    value = {"type": kind, "payload": payload}
+    if timestamp:
+        value["timestamp"] = timestamp
+    return json.dumps(value) + "\n"
 
 
 def write_trace(
@@ -36,6 +39,11 @@ def write_trace(
     output_tokens: int,
     parent_thread_id: str | None = None,
     legacy: bool = False,
+    started_at: str | None = None,
+    ended_at: str | None = None,
+    terminal: str | None = None,
+    sandbox: str | None = None,
+    approval: str | None = None,
 ) -> None:
     path = root / "2026" / "07" / "17" / filename
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,12 +72,19 @@ def write_trace(
         "output_tokens": output_tokens,
         "reasoning_output_tokens": 7,
     }
-    path.write_text(
-        event("session_meta", payload)
-        + event("turn_context", {"model": model, "effort": effort})
-        + event("event_msg", {"type": "token_count", "info": {"last_token_usage": usage}}),
-        encoding="utf-8",
-    )
+    context = {"model": model, "effort": effort}
+    if sandbox:
+        context["sandbox_policy"] = {"type": sandbox}
+    if approval:
+        context["approval_policy"] = approval
+    content = event("session_meta", payload)
+    content += event("turn_context", context, started_at)
+    content += event("event_msg", {"type": "token_count", "info": {"last_token_usage": usage}}, started_at)
+    if terminal == "completed":
+        content += event("event_msg", {"type": "task_complete"}, ended_at)
+    elif terminal == "interrupted":
+        content += event("event_msg", {"type": "turn_aborted"}, ended_at)
+    path.write_text(content, encoding="utf-8")
 
 
 class UsageByModelTests(unittest.TestCase):
@@ -211,6 +226,78 @@ class UsageByModelTests(unittest.TestCase):
             details = usage_by_model.session_rows(sessions)
             self.assertEqual({row["effort"] for row in details}, {"high", "xhigh"})
             self.assertEqual(len(details), 2)
+
+    def test_runtime_status_timestamps_sandbox_and_depth(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_trace(root, "root.jsonl", session_id="root", task_id="root", role=None,
+                        agent_path=None, model="gpt-5.6-sol", effort="high", input_tokens=1,
+                        cached_tokens=0, output_tokens=1, started_at="2026-07-17T00:00:00Z",
+                        ended_at="2026-07-17T00:00:05Z", terminal="completed",
+                        sandbox="workspace-write", approval="on-request")
+            write_trace(root, "child.jsonl", session_id="child", task_id="root", role="Explorer",
+                        agent_path="/root/child", model="gpt-5.6-luna", effort="medium", input_tokens=1,
+                        cached_tokens=0, output_tokens=1, parent_thread_id="root",
+                        started_at="2026-07-17T00:01:00Z", ended_at="2026-07-17T00:01:02Z",
+                        terminal="interrupted", sandbox="read-only", approval="never")
+            write_trace(root, "grandchild.jsonl", session_id="grandchild", task_id="root", role="Explorer",
+                        agent_path="/root/child/g", model="gpt-5.6-luna", effort="medium", input_tokens=1,
+                        cached_tokens=0, output_tokens=1, parent_thread_id="child")
+            _, _, sessions, *_ = usage_by_model.scan(root, None, "root")
+            details = usage_by_model.session_rows(sessions)
+            root_row = next(r for r in details if r["session_id"] == "root")
+            child_row = next(r for r in details if r["session_id"] == "child")
+            grand_row = next(r for r in details if r["session_id"] == "grandchild")
+            self.assertEqual(root_row["terminal_status"], "completed")
+            self.assertTrue(root_row["final_report_present"])
+            self.assertEqual(root_row["elapsed_seconds"], 5.0)
+            self.assertEqual(root_row["effective_sandbox"], ["workspace-write"])
+            self.assertEqual(child_row["terminal_status"], "interrupted")
+            self.assertEqual(child_row["interrupted_count"], 1)
+            self.assertEqual(child_row["depth"], 1)
+            self.assertEqual(grand_row["terminal_status"], "incomplete")
+            self.assertEqual(grand_row["depth"], 2)
+
+    def test_latest_terminal_marker_wins_but_prior_final_is_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "2026" / "07" / "17" / "followup.jsonl"
+            path.parent.mkdir(parents=True)
+            payload = {"id": "followup", "session_id": "followup", "cwd": "/workspace"}
+            usage = {"input_tokens": 1, "cached_input_tokens": 0, "output_tokens": 1}
+            path.write_text(
+                event("session_meta", payload, "2026-07-17T00:00:00Z")
+                + event("turn_context", {"model": "gpt-5.6-sol", "effort": "high"})
+                + event("event_msg", {"type": "token_count", "info": {"last_token_usage": usage}})
+                + event("event_msg", {"type": "task_complete"}, "2026-07-17T00:00:01Z")
+                + event("event_msg", {"type": "turn_aborted"}, "2026-07-17T00:00:02Z"),
+                encoding="utf-8",
+            )
+            _, _, sessions, *_ = usage_by_model.scan(root, None, "followup")
+            row = usage_by_model.session_rows(sessions)[0]
+            self.assertEqual(row["terminal_status"], "interrupted")
+            self.assertTrue(row["final_report_present"])
+            self.assertEqual(row["interrupted_count"], 1)
+
+    def test_resumed_session_is_incomplete_until_the_new_turn_finishes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "2026" / "07" / "17" / "resumed.jsonl"
+            path.parent.mkdir(parents=True)
+            payload = {"id": "resumed", "session_id": "resumed", "cwd": "/workspace"}
+            usage = {"input_tokens": 1, "cached_input_tokens": 0, "output_tokens": 1}
+            path.write_text(
+                event("session_meta", payload, "2026-07-17T00:00:00Z")
+                + event("turn_context", {"model": "gpt-5.6-sol", "effort": "high"})
+                + event("event_msg", {"type": "token_count", "info": {"last_token_usage": usage}})
+                + event("event_msg", {"type": "task_complete"}, "2026-07-17T00:00:01Z")
+                + event("event_msg", {"type": "task_started"}, "2026-07-17T00:00:02Z"),
+                encoding="utf-8",
+            )
+            _, _, sessions, *_ = usage_by_model.scan(root, None, "resumed")
+            row = usage_by_model.session_rows(sessions)[0]
+            self.assertEqual(row["terminal_status"], "incomplete")
+            self.assertTrue(row["final_report_present"])
 
 
 if __name__ == "__main__":

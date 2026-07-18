@@ -19,16 +19,20 @@ It is a routing guide, not a mandatory pipeline.
 
 Luna keeps routine exploration and execution economical. Sol is reserved for consequential execution and independent review, where missing an important detail costs more.
 
+The TOML sandbox is a profile default, not a guaranteed isolation boundary: a live parent permission override can be reapplied to children. Use the task-scoped usage report to verify each session's effective sandbox.
+
 ## How routing works
 
 - Use Team Mode when delegation, parallel work, context isolation, lower-cost execution, or independent review has clear value.
 - Team Mode may use no subagents at all. The main thread handles straightforward work when an Executor or Reviewer would add more coordination than value.
 - Before every spawn, identify the material benefit and count briefing, inspection, waiting, and rework as coordination cost. Explicitly invoking Team Mode does not make a spawn mandatory.
+- Give every child a dispatch packet with `Outcome`, `Benefit`, `Sources`, `Scope`, `Checks`, `Stop when`, and `Return`; keep the slice in the main thread if the packet is incomplete or the gain does not exceed coordination cost.
 - Give non-trivial read-only discovery to `Explorer`; the main thread can wait instead of repeating the same work.
 - After discovery, the main thread chooses whether to continue directly or delegate.
 - Reuse an Explorer or executor while its knowledge of the same topic, system, artifact, or workstream remains useful.
-- Use `Reviewer` only when fresh independent judgment has clear value, and start every new Reviewer with no inherited conversation.
-- Keep fan-out in the main thread; children do not create more Agents unless their brief explicitly delegates bounded orchestration.
+- A `fork_turns="none"` brief must name every source artifact needed for factual claims; children do not inherit materials that only appeared in the parent conversation.
+- Use `Reviewer` only when fresh independent judgment has clear value, and start every new Reviewer with no inherited conversation. Its packet must also name the unresolved risk, exact evidence, checks already passed, revalidation to skip, and a bounded stop condition.
+- Keep fan-out in the main thread; under standard Team Mode, children never create descendants.
 - Parallelize only genuinely independent work and keep one writer per shared target.
 - After a child error or interruption, inspect shared artifacts before retrying; recover usable work instead of automatically repeating it.
 - The main thread inspects the actual sources, artifacts, changes, and verification before accepting delegated work.
@@ -72,7 +76,7 @@ codex-team-mode/
 │   ├── references/         # Profile setup and evaluation guidance
 │   ├── scripts/usage_by_model.py
 │   └── SKILL.md
-├── tests/                   # Usage attribution regression tests
+├── tests/                   # Agent, routing, and usage regression tests
 ├── LICENSE
 └── README.md
 ```
