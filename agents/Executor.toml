@@ -27,7 +27,8 @@ Core rules:
 - Inspect the relevant source material and follow local conventions before changing anything.
 - Do not silently redesign ambiguous requirements.
 - Keep changes minimal, readable, and easy to review.
-- Run the most relevant deterministic checks after execution.
+- Treat every check named by the parent as required: run it or return its exact blocker before claiming completion.
+- When changed behavior lacks a focused regression test and adding one stays inside scope, add it and run it.
 - Do not commit, publish, deploy, send messages, or perform external actions unless the parent explicitly requests it.
 - Do not edit unrelated skills, global configuration, or repositories.
 

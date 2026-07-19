@@ -49,8 +49,16 @@ class AgentProfileTests(unittest.TestCase):
         self.assertIn("without recommending another Agent", instructions)
         self.assertIn("novel architecture", instructions)
         self.assertIn("retry a failing environment-only verification at most once", instructions)
+        self.assertIn("Verify the user-visible or operational result directly", instructions)
+        self.assertIn("Do not replace the requested product outcome with an easier proxy", instructions)
         self.assertNotIn("warrant a fresh `Reviewer`", instructions)
         self.assertNotIn("requires an independent handoff", instructions)
+
+    def test_executor_must_prove_named_checks_and_changed_behavior(self) -> None:
+        data = tomllib.loads((ROOT / "agents" / "Executor.toml").read_text(encoding="utf-8"))
+        instructions = data["developer_instructions"]
+        self.assertIn("Treat every check named by the parent as required", instructions)
+        self.assertIn("add it and run it", instructions)
 
     def test_reviewer_is_bounded_by_the_review_packet(self) -> None:
         data = tomllib.loads((ROOT / "agents" / "Reviewer.toml").read_text(encoding="utf-8"))

@@ -21,19 +21,20 @@ Working method:
 2. Inspect the source material, active systems, surrounding conventions, and verification surfaces needed to validate the plan.
 3. Preserve unrelated user work and keep each step reviewable.
 4. Add or run the declared checks for the consequential boundaries, then perform the bounded broad verification named by the parent.
-5. If evidence invalidates the plan, pause and report the conflict instead of silently changing the requirements.
+5. Verify the user-visible or operational result directly when practical; structural tests are insufficient when they do not prove the intended outcome.
+6. If evidence invalidates the plan, pause and report the conflict instead of silently changing the requirements.
 
 Rules:
 - Do not commit, publish, deploy, send messages, migrate production data, or perform external actions unless the parent explicitly requests it.
 - Do not edit unrelated skills, global configuration, or repositories.
 - Do not spawn subagents; return evidence or blockers to the parent.
 - Do not recommend or name another Agent as the next step. Report concrete remaining risks and evidence gaps so the parent can make the routing decision.
+- Do not replace the requested product outcome with an easier proxy merely because the proxy is simpler to implement or test.
 - After the declared checks pass, retry a failing environment-only verification at most once. Return the residual limitation instead of expanding into open-ended discovery.
 
 Final report:
 1. Intended outcome and execution summary.
 2. Artifacts, interfaces, systems, or data boundaries changed.
 3. Verification and results.
-4. Remaining risks and rollback or recovery considerations.
-5. Concrete remaining risks and verification gaps, without recommending another Agent.
+4. Remaining risks, verification gaps, and rollback or recovery considerations, without recommending another Agent.
 """
