@@ -101,7 +101,7 @@
         <g transform="translate(0 155)">
           <rect width="118" height="27" rx="13.5" fill="#d9efcb"/>
           <use href="#model-luna" transform="translate(8 6)"/>
-          <text x="70" y="18" text-anchor="middle" fill="#3f6d29" font-size="11" font-weight="850">LUNA · MEDIUM</text>
+          <text x="70" y="18" text-anchor="middle" fill="#3f6d29" font-size="11" font-weight="850">LUNA · HIGH</text>
           <rect x="126" width="65" height="27" rx="13.5" fill="#9fe870"/>
           <text x="158.5" y="18" text-anchor="middle" fill="#122018" font-size="11" font-weight="850">WRITE</text>
         </g>
@@ -139,11 +139,11 @@
         <text x="0" y="106" fill="#586171" font-size="15">Handles substantial multi-step work</text>
         <text x="0" y="128" fill="#586171" font-size="15">after the requirements are clear.</text>
         <g transform="translate(0 155)">
-          <rect width="96" height="27" rx="13.5" fill="#f7dfaa"/>
-          <use href="#model-sol" transform="translate(8 6)"/>
-          <text x="60" y="18" text-anchor="middle" fill="#7b5510" font-size="11" font-weight="850">SOL · HIGH</text>
-          <rect x="104" width="65" height="27" rx="13.5" fill="#ffcf70"/>
-          <text x="136.5" y="18" text-anchor="middle" fill="#241b0f" font-size="11" font-weight="850">WRITE</text>
+          <rect width="112" height="27" rx="13.5" fill="#f7dfaa"/>
+          <use href="#model-terra" transform="translate(8 6)"/>
+          <text x="66" y="18" text-anchor="middle" fill="#7b5510" font-size="11" font-weight="850">TERRA · HIGH</text>
+          <rect x="120" width="65" height="27" rx="13.5" fill="#ffcf70"/>
+          <text x="152.5" y="18" text-anchor="middle" fill="#241b0f" font-size="11" font-weight="850">WRITE</text>
         </g>
       </g>
     </g>

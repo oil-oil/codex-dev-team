@@ -19,6 +19,10 @@ class TeamModeSkillContractTests(unittest.TestCase):
         self.assertIn("usable partial verdict", skill)
         self.assertIn("children never spawn descendants", skill)
         self.assertIn("request a partial verdict once, then interrupt it", skill)
+        self.assertIn("`Executor`（Luna High）", skill)
+        self.assertIn("`Complex Executor`（Terra High）", skill)
+        self.assertIn("Main thread: keep the critical slice", skill)
+        self.assertIn("`Reviewer`（Sol High）", skill)
 
     def test_agent_type_dispatch_gate_is_explicit(self) -> None:
         skill = (ROOT / "skills" / "team-mode" / "SKILL.md").read_text(encoding="utf-8")

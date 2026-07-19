@@ -43,6 +43,8 @@ When a child fails, inspect the shared target before counting the attempt as los
 - Use `Complex Executor` when the main thread has already fixed the important decisions and substantial execution still benefits from isolated deep reasoning.
 - Use `Reviewer` when independent judgment can catch consequential or hard-to-verify mistakes. Do not make it an automatic final stage.
 
+Evaluate a Complex Executor inside the real controlled workflow, not only as a standalone author: measure the candidate plus main-thread inspection and bounded repair. Strong main-thread acceptance can close observable implementation gaps cheaply. It cannot reliably compensate for a plausible but product-weaker architecture that passes shallow checks, so route novel architecture, weak or visual oracles, export/compiler behavior, and high-consequence rollback or security judgment back to the main thread and use a risk-focused Reviewer only when needed.
+
 Prefer changing routing thresholds or brief quality before upgrading every role's model or reasoning effort. Change a profile only when repeated task-scoped evidence shows a role cannot meet its boundary.
 
 ## Report The Result

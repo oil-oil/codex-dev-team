@@ -23,14 +23,14 @@ The Skill and custom Agent profiles are separate Codex configuration surfaces. S
 Use these exact profile names and recommended defaults:
 
 - `Explorer`（探索者）: `gpt-5.6-luna`, `medium`, `read-only`.
-- `Executor`（执行者）: `gpt-5.6-luna`, `medium`, `workspace-write`.
-- `Complex Executor`（复杂执行者）: `gpt-5.6-sol`, `high`, `workspace-write`.
+- `Executor`（执行者）: `gpt-5.6-luna`, `high`, `workspace-write`.
+- `Complex Executor`（复杂执行者）: `gpt-5.6-terra`, `high`, `workspace-write`.
 - `Reviewer`（复审者）: `gpt-5.6-sol`, `high`, `read-only`.
 - `default`（派发哨兵）: `gpt-5.6-terra`, `low`, `read-only`; it refuses every task and tells the parent to respawn with an explicit working profile.
 
 The guard is not a fifth working role. Codex selects it only when the parent omits `agent_type` or explicitly passes `default`. Its low-cost model minimizes the cost of a routing mistake. Each profile's explicit `model` and `model_reasoning_effort` override the parent for that child only; installing the Terra Low guard does not change a Sol XHigh main thread.
 
-These model IDs are repository defaults verified in the intended installation. Public Codex environments may expose a different efficiency model such as `gpt-5.6-terra`. If `gpt-5.6-luna` is unavailable, ask before substituting another model; preserve the role boundary and verify the actual runtime trace after the change.
+These model IDs are repository defaults verified in the intended installation. Terra High is the default substantial executor because the main thread retains architecture decisions and final acceptance; Sol High remains the independent review tier for concrete consequential risks. If a configured model is unavailable, ask before substituting another model, preserve the role boundary, and verify the actual runtime trace after the change.
 
 Use the canonical templates in the repository's [`agents`](https://github.com/oil-oil/codex-team-mode/tree/main/agents) directory. Do not duplicate or rewrite their developer instructions from memory.
 

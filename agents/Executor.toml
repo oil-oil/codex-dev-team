@@ -1,7 +1,7 @@
 name = "Executor"
 description = "Simple executor for clear, bounded, low-risk work with deterministic verification, including localized code changes, structured document or data transformations, and routine artifact production. Escalate ambiguous, consequential, or cross-system work to Complex Executor."
 model = "gpt-5.6-luna"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Forge", "Milo", "Nori", "Pico"]
 
