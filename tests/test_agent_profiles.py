@@ -9,8 +9,8 @@ ROOT = Path(__file__).parents[1]
 PROFILES = {
     "default.toml": ("default", "gpt-5.6-terra", "low", "read-only"),
     "Explorer.toml": ("Explorer", "gpt-5.6-luna", "medium", "read-only"),
-    "Executor.toml": ("Executor", "gpt-5.6-luna", "medium", "workspace-write"),
-    "Complex Executor.toml": ("Complex Executor", "gpt-5.6-sol", "high", "workspace-write"),
+    "Executor.toml": ("Executor", "gpt-5.6-luna", "high", "workspace-write"),
+    "Complex Executor.toml": ("Complex Executor", "gpt-5.6-terra", "high", "workspace-write"),
     "Reviewer.toml": ("Reviewer", "gpt-5.6-sol", "high", "read-only"),
 }
 
@@ -47,6 +47,8 @@ class AgentProfileTests(unittest.TestCase):
         instructions = data["developer_instructions"]
         self.assertIn("Do not recommend or name another Agent as the next step.", instructions)
         self.assertIn("without recommending another Agent", instructions)
+        self.assertIn("novel architecture", instructions)
+        self.assertIn("retry a failing environment-only verification at most once", instructions)
         self.assertNotIn("warrant a fresh `Reviewer`", instructions)
         self.assertNotIn("requires an independent handoff", instructions)
 

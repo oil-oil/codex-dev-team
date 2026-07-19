@@ -1,6 +1,6 @@
 ---
 name: team-mode
-description: Coordinate custom subagents for substantial development, research, analysis, planning, document, data, and content tasks when delegation, parallel work, context isolation, lower-cost execution, or independent review provides clear value. Keep unresolved decisions and final acceptance in the main thread. Do not use for casual conversation, simple lookups, or tasks whose coordination cost exceeds the work.
+description: Coordinate the smallest useful set of custom subagents for substantial development, research, analysis, planning, document, data, and content work. Use when delegation, parallelism, context isolation, lower-cost execution, or independent review clearly outweighs coordination cost. Keep unresolved decisions and final acceptance in the main thread. Do not use for casual or simple tasks.
 ---
 
 # Team Mode
@@ -57,10 +57,11 @@ For a `Reviewer`, also name one concrete `Unresolved risk`, the exact `Evidence`
 
 ## Route The Work
 
-- Use `Explorer` for non-trivial, read-only discovery across current web sources, documents, datasets, codebases, schemas, APIs, logs, or configuration. Give independent slices to separate Explorers. Let the main thread wait when the result blocks the next decision; do not repeat the same exploration.
-- Use `Executor` for clear, bounded, low-risk work with deterministic checks when lower-cost execution, context isolation, repetition, or useful parallelism justifies the handoff. Otherwise let the main thread do it directly.
-- Use `Complex Executor` for substantial but bounded execution after the main thread has stated the intended outcome, allowed scope, constraints, and required checks.
-- Use `Reviewer` only when fresh independent judgment has clear value because the result is complex, consequential, uncertain, difficult to verify, or explicitly requested. Let the main thread verify straightforward low-risk work directly. A child's suggestion to add review is evidence, not a routing decision; use the Reviewer packet above instead of treating review as an automatic final stage.
+- `Explorer`（Luna Medium）: use for non-trivial read-only discovery. Give separate Explorers independent evidence slices and do not repeat their work in the main thread.
+- `Executor`（Luna High）: use for clear, bounded, low-risk work with deterministic checks. Keep the work in the main thread when the handoff costs more than doing it directly.
+- `Complex Executor`（Terra High）: use for substantial conventional implementation after the main thread has fixed the architecture, scope, and checks. The main thread still inspects and accepts the result.
+- Main thread: keep the critical slice when it needs novel architecture, weak or visual verification, export/compiler design, security or rollback judgment, or when a plausible false success would be costly.
+- `Reviewer`（Sol High）: use only for one concrete unresolved risk that benefits from fresh independent judgment. Do not make review an automatic second pass.
 
 After discovery, let the main thread choose whether to continue directly or delegate. Delegate only when bounded execution, context isolation, lower cost, useful parallelism, or independent judgment creates clear value.
 

@@ -13,13 +13,13 @@ It is a routing guide, not a mandatory pipeline.
 ## The team
 
 - **Explorer（探索者）· Luna Medium · read-only** — gathers evidence across current web sources, documents, data, code, APIs, logs, and configuration.
-- **Executor（执行者）· Luna Medium · workspace-write** — completes clear, bounded, low-risk work with deterministic checks.
-- **Complex Executor（复杂执行者）· Sol High · workspace-write** — completes substantial but bounded work after the intended outcome and safety boundaries are clear.
+- **Executor（执行者）· Luna High · workspace-write** — completes clear, bounded, low-risk work with deterministic checks.
+- **Complex Executor（复杂执行者）· Terra High · workspace-write** — completes substantial but bounded implementation after architecture, acceptance checks, and safety boundaries are clear.
 - **Reviewer（复审者）· Sol High · read-only** — independently checks stable code, reports, plans, analyses, data, and other artifacts from fresh context.
 
 Every spawn must explicitly pass one of those four names through `agent_type`. `task_name` is only a label, and `default` is never a working role.
 
-Luna keeps routine exploration and execution economical. Sol is reserved for consequential execution and independent review, where missing an important detail costs more.
+Luna keeps exploration economical and gives bounded execution a higher reasoning margin. Terra handles most conventional complex implementation while the main thread retains architecture decisions and final acceptance. Sol is reserved for focused independent review of concrete consequential risks.
 
 The TOML sandbox is a profile default, not a guaranteed isolation boundary: a live parent permission override can be reapplied to children. Use the task-scoped usage report to verify each session's effective sandbox.
 
@@ -31,6 +31,7 @@ The TOML sandbox is a profile default, not a guaranteed isolation boundary: a li
 - Give every child a dispatch packet with `Outcome`, `Benefit`, `Sources`, `Scope`, `Checks`, `Stop when`, and `Return`; keep the slice in the main thread if the packet is incomplete or the gain does not exceed coordination cost.
 - Give non-trivial read-only discovery to `Explorer`; the main thread can wait instead of repeating the same work.
 - After discovery, the main thread chooses whether to continue directly or delegate.
+- Use Terra High Complex Executor for conventional multi-file implementation with deterministic checks. Keep novel architecture, weak or visual verification, export/compiler behavior, and high-consequence security or rollback judgment in the main thread; use Sol High Reviewer only for a concrete residual risk.
 - Reuse an Explorer or executor while its knowledge of the same topic, system, artifact, or workstream remains useful.
 - A `fork_turns="none"` brief must name every source artifact needed for factual claims; children do not inherit materials that only appeared in the parent conversation.
 - Use `Reviewer` only when fresh independent judgment has clear value, and start every new Reviewer with no inherited conversation. Its packet must also name the unresolved risk, exact evidence, checks already passed, revalidation to skip, and a bounded stop condition.

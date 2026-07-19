@@ -13,13 +13,13 @@
 ## 四个角色
 
 - **Explorer（探索者）· Luna Medium · 只读**：从当前网页、文档、数据、代码、API、日志和配置中查找证据。
-- **Executor（执行者）· Luna Medium · 可写**：完成边界清楚、风险较低，而且能明确验证的工作。
-- **Complex Executor（复杂执行者）· Sol High · 可写**：在目标和安全边界已经明确后，完成复杂但有边界的任务。
+- **Executor（执行者）· Luna High · 可写**：完成边界清楚、风险较低，而且能明确验证的工作。
+- **Complex Executor（复杂执行者）· Terra High · 可写**：在架构、验收标准和安全边界已经明确后，完成复杂但有边界的实现。
 - **Reviewer（复审者）· Sol High · 只读**：使用全新上下文独立检查稳定的代码、报告、方案、分析、数据和其他产物。
 
 每次派发都必须通过 `agent_type` 显式传入上面四个名称之一。`task_name` 只是标签，`default` 永远不是工作角色。
 
-Luna 承担日常探索和执行，控制成本；Sol 留给重要的复杂执行与独立复审，因为这些环节漏掉关键细节的代价更高。
+Luna 以 Medium 完成探索、以 High 完成明确执行；Terra 负责多数常规复杂实现，架构决策和最终验收仍留在主线程；Sol 用于针对具体重要风险的独立复审。
 
 TOML 里的 sandbox 是 profile 默认值，不是绝对隔离边界；父线程的实时权限覆盖可能重新应用到子 Agent。使用任务级 usage 报告核对每个 session 的实际 sandbox。
 
@@ -31,6 +31,7 @@ TOML 里的 sandbox 是 profile 默认值，不是绝对隔离边界；父线程
 - 每个子 Agent 都要收到包含 `Outcome`、`Benefit`、`Sources`、`Scope`、`Checks`、`Stop when` 和 `Return` 的 dispatch packet；字段不完整或收益不足以覆盖协调成本时，任务留在主线程。
 - 需要一定范围的只读探索时交给 `Explorer`；主线程可以等待结果，不重复做同样的工作。
 - 探索完成后，主线程根据上下文、成本、风险和协调价值，决定自己继续还是委派。
+- 有确定架构和程序化检查的常规多文件实现交给 Terra High Complex Executor；全新架构、弱验证或视觉验收、导出器/编译器，以及高后果的安全或回滚判断留在主线程，仅针对具体残余风险使用 Sol High Reviewer。
 - 同一主题、系统、产物或工作线的已有上下文仍然有用时，复用原来的 Explorer 或执行者。
 - 使用 `fork_turns="none"` 时，brief 必须列出事实判断所需的全部来源；只在主线程对话里出现过的材料不会自动传给子 Agent。
 - 只有独立判断确实有价值时才使用 `Reviewer`，并且每次新的 Reviewer 都不继承历史对话。它的 packet 还必须列出未解决风险、精确证据、已通过检查、不要重复的验证和有边界的停止条件。
